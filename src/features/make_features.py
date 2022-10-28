@@ -106,8 +106,7 @@ def make_features(in_file: str, out_file: str) -> None:
         'T_C2',
         'T_C3',
         'T_C4',
-        'T_C5',
-        'SO4'
+        'T_C5'
     ]
 
     df = df.drop(columns_drop, axis=1)
