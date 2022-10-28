@@ -17,14 +17,15 @@ import numpy as np
 # out_file_path = f'{WORK_DF_PATH}\\{WORK_FILE_NAME}'
 
 
-# @click.command()
-# @click.argument('in_file', type=click.Path)
-# @click.argument('out_file', type=click.Path)
-def make_features(in_file: Path, out_file: Path) -> None:
+@click.command()
+@click.argument('in_file', type=click.Path())
+@click.argument('out_file', type=click.Path())
+def make_features(in_file: str, out_file: str) -> None:
     """
     Add features to df
 
     Нужно добавить следующие данные:
+        + интерполяция ХА
         + Содержание твердого - C_S
         + Расход пульпы - Q_SL
         + Расход твердого - G_S

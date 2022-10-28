@@ -12,11 +12,11 @@ from pathlib import Path
 # out_file_path = "df_total_all.zip"
 
 
-# @click.command()
-# @click.argument('work_dir', type=click.STRING)
-# @click.argument('file_name', type=click.STRING)
-# @click.argument('out_file', type=click.STRING)
-def make_one_file(work_dir: Path, file_name: str, out_file: Path) -> None:
+@click.command()
+@click.argument('work_dir', type=click.Path())
+@click.argument('file_name', type=click.STRING)
+@click.argument('out_file', type=click.Path())
+def make_one_file(work_dir: str, file_name: str, out_file: str) -> None:
     """
     Makes one file from 4 autoclaves. New names for columns
 

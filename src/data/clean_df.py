@@ -17,10 +17,10 @@ from pathlib import Path
 # out_file_path = f'{CLEAN_DF_PATH}\\{CLEAN_FILE_NAME}'
 
 
-# @click.command()
-# @click.argument('in_file', type=click.Path)
-# @click.argument('out_file', type=click.Path)
-def clean_df(in_file: Path, out_file: Path) -> None:
+@click.command()
+@click.argument('in_file', type=click.Path())
+@click.argument('out_file', type=click.Path())
+def clean_df(in_file: str, out_file: str) -> None:
     """
     Function for cleaning dataset
 
@@ -28,12 +28,10 @@ def clean_df(in_file: Path, out_file: Path) -> None:
     0. Убираем то время, что автоклав не работал
     1. Убираем все данные с концентрацией железа выше 20 г/л. 20 - константа
     2. Убираем все данные с концентрацией железа = 0.
-    3. Интерполяция данных по ХА - колонки 'Fe', 'Stot', 'SO4', 'As', 'Corg', 'Ctot', 'D_S', 'D_SL_H'.
-        Метод interpolate(method='time')
-    4. Колонку SO4 удалим, данных мало, анализы странные
-    5. По Сорг удалим все данные больше 2 %
-    6. По Стот удалим все данные больше 5 %
-    7. Удалить все значения мышьяка больше 16 %
+    3. Колонку SO4 удалим, данных мало, анализы странные
+    4. По Сорг удалим все данные больше 2 %
+    5. По Стот удалим все данные больше 5 %
+    6. Удалить все значения мышьяка больше 16 %
 
     Args:
         in_file: file path for raw df
@@ -67,13 +65,6 @@ def clean_df(in_file: Path, out_file: Path) -> None:
     # df = df.reset_index()
     df = df.drop(df[df['work'] == 0].index)
     df = df.drop('work', axis=1)
-
-    # df = df.set_index('index')
-    # df.index.name = ""
-    
-    # интерполяция
-    df.replace({0: np.NaN}, inplace=True)
-    df=df.interpolate(method='time')
 
     # save file
     comp = {
