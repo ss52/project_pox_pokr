@@ -135,3 +135,6 @@ cache/
 catboost_info/
 reports/
 .snakemake/
+
+# Old notebooks
+Old/
