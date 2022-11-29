@@ -1,9 +1,9 @@
 import pandas as pd
-from dotenv import load_dotenv
-import os
+# from dotenv import load_dotenv
+# import os
 import click
-from pathlib import Path
-import numpy as np
+# from pathlib import Path
+# import numpy as np
 
 # load_dotenv(override=True)
 #
@@ -26,21 +26,25 @@ def make_features(in_file: str, out_file: str) -> None:
 
     Нужно добавить следующие данные:
         + интерполяция ХА
-        + Содержание твердого - C_S
+        + Содержание твердого - C_Solid
         + Расход пульпы - Q_SL
-        + Расход твердого - G_S
+        + Расход твердого - G_Solid
         + Расход серного эквивалента - G_Seq
-        - количество пирита, т/ч
-        - количество арсенопирита, т/ч
-        - стехиометрический расход кислорода на полное окисление, нм³/т
-        - отношение реально поданного кислорода к стехиометрии, доли
-        - степень окисления материала по секциям по расходу кислорода от общего кол-ва, доли
+        + количество пирита, т/ч
+        + количество арсенопирита, т/ч
+        + стехиометрический расход кислорода на полное окисление, нм³/т
+        + отношение реально поданного кислорода к стехиометрии, доли
+        - степень окисления материала по секциям по расходу кислорода от общего кол-ва, доли - BettaS_O2_X
+        - степень окисления материала по секциям по расходу ОВ, доли - BettaS_QW_X
         -
 
     Константы:
         - Максимальная производительность насоса Feluwa 17,45 м³/ч
         - Максимальное число шагов 51
         - Мышьяк в СЭ - 0,371
+        - Молярная масса Fe - 55,85 г/моль
+        - Молярная масса S - 32,06 г/моль
+        - Молярная масса As - 74,92 г/моль
 
 
     Args:
@@ -53,6 +57,13 @@ def make_features(in_file: str, out_file: str) -> None:
     FELUWA_MAX_N = 51
     COEF_AS_SEQ = 0.371
     D_WATER = 1000
+
+    M_As = 74.92
+    M_Fe = 55.85
+    M_S = 32.06
+
+    M_FeS2 = M_Fe + 2 * M_S
+    M_FeAsS = M_Fe + M_As + M_S
 
     df = pd.read_csv(in_file, index_col=0, parse_dates=True)
 
@@ -70,21 +81,40 @@ def make_features(in_file: str, out_file: str) -> None:
     df[int_cols] = df.loc[:, int_cols].interpolate(method='time')
 
     # new features
-    fel_sum = df['Fel_1'] + df['Fel_2']
-    df = df.assign(Fel_sum=fel_sum.values)
+    # fel_sum = df['Fel_1'] + df['Fel_2']
+    # df = df.assign(Fel_sum=fel_sum.values)
 
-    df = df.assign(C_S=(df['D_S'] * D_WATER - df['D_SL_H'] * df['D_S']) / (
+    df = df.assign(C_Solid=(df['D_S'] * D_WATER - df['D_SL_H'] * df['D_S']) / (
                 df['D_SL_H'] * D_WATER - df['D_SL_H'] * df['D_S']) * 100)
     df = df.assign(Q_SL=df['Fel_sum'] / FELUWA_MAX_N * FELUWA_MAX_Q)
-    df = df.assign(G_S=df['Q_SL'] * df['D_SL_H'] / 1000 * (df['C_S'] / 100))
-    df = df.assign(G_Seq=(COEF_AS_SEQ * df['As'] / 100 + df['Stot'] / 100) * df['G_S'])
+    df = df.assign(G_Solid=df['Q_SL'] * df['D_SL_H'] / 1000 * (df['C_Solid'] / 100))
+    df = df.assign(G_Seq=(COEF_AS_SEQ * df['As'] / 100 + df['Stot'] / 100) * df['G_Solid'])
+
+    df = df.assign(G_FeS2=((df['Stot'] - df['As'] / M_As * M_S) / 2 / M_S * M_FeS2) / 100 * df['G_Solid'])
+    df = df.assign(G_FeAsS=(df['As'] / M_As * M_FeAsS) / 100 * df['G_Solid'])
+
+    df = df.assign(G_O2_st=df['G_FeS2'] / 2 / M_FeS2 * 7.5 * 22.4 + df['G_FeAsS'] / M_FeAsS * 3.5 * 22.4)
+    df = df.assign(O2_part=df['G_O2_st'] / df['O2_tot'])
+
+    df = df.assign(BettaS_O2_1=df['O2_C1'] / df['O2_tot'])
+    df = df.assign(BettaS_O2_2=df['O2_C2'] / df['O2_tot'])
+    df = df.assign(BettaS_O2_3=df['O2_C3'] / df['O2_tot'])
+    df = df.assign(BettaS_O2_4=df['O2_C4'] / df['O2_tot'])
+    df = df.assign(BettaS_O2_5=df['O2_C5'] / df['O2_tot'])
+
+    df = df.assign(QQ_tot_sl=df['QQ_tot'] + + df['Q_SL'] - df['G_Solid'] / df['D_S'])
+
+    df = df.assign(BettaS_QW_1=(df['QQ_C1'] + df['Q_SL'] - df['G_Solid'] / df['D_S']) / df['QQ_tot_sl'])
+    df = df.assign(BettaS_QW_2=df['QQ_C2'] / df['QQ_tot_sl'])
+    df = df.assign(BettaS_QW_3=df['QQ_C3'] / df['QQ_tot_sl'])
+    df = df.assign(BettaS_QW_4=df['QQ_C4'] / df['QQ_tot_sl'])
+    df = df.assign(BettaS_QW_5=df['QQ_C5'] / df['QQ_tot_sl'])
 
     # delete columns
     columns_drop = [
         "Fel_1",
         "Fel_2",
         "D_SL",
-        "O2_tot",
         "Sl_tot",
         "AC_rbk_open",
         "AC_valve_open",
