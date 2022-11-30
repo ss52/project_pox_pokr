@@ -17,6 +17,20 @@ import click
 # out_file_path = f'{WORK_DF_PATH}\\{WORK_FILE_NAME}'
 
 
+def add_lags_inplace(df: pd.DataFrame, num_lags: int, for_ac: bool = True) -> None:
+
+    if for_ac:
+        for lag in range(1, num_lags + 1):
+            lag_name = f'lag_{lag}'
+            df[lag_name] = df.groupby('ac')['Fe2+'].shift(lag)
+    else:
+        for lag in range(1, num_lags + 1):
+            lag_name = f'lag_{lag}'
+            df[lag_name] = df['Fe2+'].shift(lag)
+
+    df.dropna(axis=0, inplace=True)
+
+
 @click.command()
 @click.argument('in_file', type=click.Path())
 @click.argument('out_file', type=click.Path())
@@ -34,9 +48,9 @@ def make_features(in_file: str, out_file: str) -> None:
         + количество арсенопирита, т/ч
         + стехиометрический расход кислорода на полное окисление, нм³/т
         + отношение реально поданного кислорода к стехиометрии, доли
-        - степень окисления материала по секциям по расходу кислорода от общего кол-ва, доли - BettaS_O2_X
-        - степень окисления материала по секциям по расходу ОВ, доли - BettaS_QW_X
-        -
+        + степень окисления материала по секциям по расходу кислорода от общего кол-ва, доли - BettaS_O2_X
+        + степень окисления материала по секциям по расходу ОВ, доли - BettaS_QW_X
+        + добавим признаки сдвижки по времени, данные по концентрации железа за прошлые 3 часа
 
     Константы:
         - Максимальная производительность насоса Feluwa 17,45 м³/ч
@@ -109,6 +123,9 @@ def make_features(in_file: str, out_file: str) -> None:
     df = df.assign(BettaS_QW_3=df['QQ_C3'] / df['QQ_tot_sl'])
     df = df.assign(BettaS_QW_4=df['QQ_C4'] / df['QQ_tot_sl'])
     df = df.assign(BettaS_QW_5=df['QQ_C5'] / df['QQ_tot_sl'])
+
+    # сдвижка по времени
+    add_lags_inplace(df, 3)
 
     # delete columns
     columns_drop = [
