@@ -27,7 +27,7 @@ def clean_df(in_file: str, out_file: str) -> None:
     Описание правил:
     0. Убираем то время, что автоклав не работал
     1. Убираем все данные с концентрацией железа выше 20 г/л. 20 - константа
-    2. Убираем все данные с концентрацией железа = 0.
+    2. Убираем все данные с концентрацией железа = 0. - Попробуем заменить на Nan, потом интерполировать
     3. Колонку SO4 удалим, данных мало, анализы странные
     4. По Сорг удалим все данные больше 2 %
     5. По Стот удалим все данные больше 5 %
@@ -52,8 +52,9 @@ def clean_df(in_file: str, out_file: str) -> None:
     df = pd.read_csv(in_file)
 
     # clean file
-    df = df.drop(df[df['Fe2+'] == FE2_MIN].index)
+    # df = df.drop(df[df['Fe2+'] == FE2_MIN].index)
     df = df.drop(df[df['Fe2+'] > FE2_MAX].index)
+    df = df.replace({'Fe2+': {0, np.NaN}})
 
     df = df.drop(df[df['Corg'] > CORG_MAX].index)
     df = df.drop(df[df['Ctot'] > CTOT_MAX].index)

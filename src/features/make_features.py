@@ -83,6 +83,7 @@ def make_features(in_file: str, out_file: str) -> None:
 
     # chem interpolate
     int_cols = [
+        'Fe2+',
         'Fe',
         'Stot',
         'As',
@@ -107,7 +108,7 @@ def make_features(in_file: str, out_file: str) -> None:
     df = df.assign(G_FeS2=((df['Stot'] - df['As'] / M_As * M_S) / 2 / M_S * M_FeS2) / 100 * df['G_Solid'])
     df = df.assign(G_FeAsS=(df['As'] / M_As * M_FeAsS) / 100 * df['G_Solid'])
 
-    df = df.assign(G_O2_st=df['G_FeS2'] / 2 / M_FeS2 * 7.5 * 22.4 + df['G_FeAsS'] / M_FeAsS * 3.5 * 22.4)
+    df = df.assign(G_O2_st=(df['G_FeS2'] / 2 / M_FeS2 * 7.5 * 22.4 + df['G_FeAsS'] / M_FeAsS * 3.5 * 22.4) * 1000)
     df = df.assign(O2_part=df['G_O2_st'] / df['O2_tot'])
 
     df = df.assign(BettaS_O2_1=df['O2_C1'] / df['O2_tot'])
