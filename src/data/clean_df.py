@@ -52,9 +52,9 @@ def clean_df(in_file: str, out_file: str) -> None:
     df = pd.read_csv(in_file)
 
     # clean file
-    # df = df.drop(df[df['Fe2+'] == FE2_MIN].index)
+    df = df.drop(df[df['Fe2+'] == FE2_MIN].index)
     df = df.drop(df[df['Fe2+'] > FE2_MAX].index)
-    df = df.replace({'Fe2+': {0, np.NaN}})
+    # df = df.replace({'Fe2+': {0, np.NaN}})
 
     df = df.drop(df[df['Corg'] > CORG_MAX].index)
     df = df.drop(df[df['Ctot'] > CTOT_MAX].index)

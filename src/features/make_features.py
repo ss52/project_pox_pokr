@@ -83,7 +83,7 @@ def make_features(in_file: str, out_file: str) -> None:
 
     # chem interpolate
     int_cols = [
-        'Fe2+',
+        # 'Fe2+',
         'Fe',
         'Stot',
         'As',
@@ -159,6 +159,9 @@ def make_features(in_file: str, out_file: str) -> None:
 
     df = df.drop(columns_drop, axis=1)
     df = df.dropna()
+
+    # zeroes for negative numbers
+    df[df < 0] = 0
 
     # save file
     comp = {
