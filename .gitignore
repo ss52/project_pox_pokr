@@ -138,3 +138,7 @@ reports/
 
 # Old notebooks
 Old/
+
+# W&B
+wandb/
+src/models/wandb/
