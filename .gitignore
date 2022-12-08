@@ -135,3 +135,16 @@ cache/
 catboost_info/
 reports/
 .snakemake/
+
+# Old notebooks
+Old/
+
+# W&B
+wandb/
+src/models/wandb/
+
+#Data
+/data/clean
+/data/test
+/data/raw/df_raw_test.zip
+/data/df_work_test.zip

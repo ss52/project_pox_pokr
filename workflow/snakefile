@@ -3,30 +3,36 @@ rule all:
     input:
         'data/raw/df_raw_test.zip',
         'data/clean/df_clean_test.zip',
-        'data/df_work_test.zip'
+        'data/df_work_test.zip',
+        'src/data/make_one_file.py',
+        'src/data/clean_df.py',
+        'src/features/make_features.py'
 
 file = 'df_total_ds_1h_'
 
 rule make_one_file:
     input:
-        'data/raw'
+        'data/raw',
+        'src/data/make_one_file.py'
     output:
         'data/raw/df_raw_test.zip'
     shell:
-        'python -m src.data.make_one_file {input} {file} {output}'
+        'python -m src.data.make_one_file {input[0]} {file} {output}'
 
 rule clean:
     input:
-        'data/raw/df_raw_test.zip'
+        'data/raw/df_raw_test.zip',
+        'src/data/clean_df.py'
     output:
         'data/clean/df_clean_test.zip'
     shell:
-        'python -m src.data.clean_df {input} {output}'
+        'python -m src.data.clean_df {input[0]} {output}'
 
 rule features:
     input:
-        'data/clean/df_clean_test.zip'
+        'data/clean/df_clean_test.zip',
+        'src/features/make_features.py'
     output:
         'data/df_work_test.zip'
     shell:
-        'python -m src.features.make_features {input} {output}'
+        'python -m src.features.make_features {input[0]} {output}'
